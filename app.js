@@ -1,9 +1,19 @@
 import 'dotenv/config';
+import { Appsignal } from "@appsignal/nodejs";
+
+console.log(process.APPSIGNAL_PUSH_API_KEY);
+const appsignal = new Appsignal({
+    // active: process.env.NODE_ENV !== "development",
+    active: true,
+    name: process.env.APPSIGNAL_APP_NAME,
+    pushApiKey: process.APPSIGNAL_PUSH_API_KEY
+});
+
+  
 import express from 'express';
 import { expressMiddleware } from "@appsignal/express";
 import { getRedisClient } from './cacheClient.js';
 import { fetchNews } from './newsClient.js';
-import { appsignal } from './tracingClient.js';
 
 const app = express();
 
@@ -12,7 +22,8 @@ const router = express.Router();
 
 router.get('/news', async (req, res) => {
     try {
-        const cacheClient = await getRedisClient()
+        const cacheClient = await getRedisClient();
+
         const key = `news${req.query.page}`;
         const newsInCache = await cacheClient.get(key);
 
@@ -24,8 +35,6 @@ router.get('/news', async (req, res) => {
 
         return res.send({ success: true, data: newsFromApi })
     } catch(error) {
-
-        console.log(error);
         res.status(400).send(error);
     }
 });
