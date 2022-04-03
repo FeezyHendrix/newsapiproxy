@@ -1,9 +1,13 @@
 import 'dotenv/config';
 import express from 'express';
+import { expressMiddleware } from "@appsignal/express";
 import { getRedisClient } from './cacheClient.js';
 import { fetchNews } from './newsClient.js';
+import { appsignal } from './tracingClient.js';
 
 const app = express();
+
+
 const router = express.Router();
 
 router.get('/news', async (req, res) => {
@@ -20,13 +24,18 @@ router.get('/news', async (req, res) => {
 
         return res.send({ success: true, data: newsFromApi })
     } catch(error) {
-        // throw new Error(error);
+
         console.log(error);
         res.status(400).send(error);
     }
 });
 
 app.use('/', router);
+
+/**
+ * Add tracing client
+ */
+app.use(expressMiddleware(appsignal));
 
 app.listen(process.env.PORT, () => {
     console.log('Proxy server running, on port ' + process.env.PORT);
