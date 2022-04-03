@@ -1,15 +1,7 @@
+import { appsignal } from './appsignal.js';
+
+// console.log(appsignal);
 import 'dotenv/config';
-import { Appsignal } from "@appsignal/nodejs";
-
-console.log(process.APPSIGNAL_PUSH_API_KEY);
-const appsignal = new Appsignal({
-    // active: process.env.NODE_ENV !== "development",
-    active: true,
-    name: process.env.APPSIGNAL_APP_NAME,
-    pushApiKey: process.APPSIGNAL_PUSH_API_KEY
-});
-
-  
 import express from 'express';
 import { expressMiddleware } from "@appsignal/express";
 import { getRedisClient } from './cacheClient.js';
@@ -22,6 +14,8 @@ const router = express.Router();
 
 router.get('/news', async (req, res) => {
     try {
+
+        if(!req.query.page) return res.status(500).send({ error: 'Invalid params '});
         const cacheClient = await getRedisClient();
 
         const key = `news${req.query.page}`;
